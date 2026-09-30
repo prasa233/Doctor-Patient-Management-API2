@@ -1,102 +1,66 @@
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
-from sqlalchemy.exc import IntegrityError
-
+from fastapi import FastAPI
+from app.auth.router import router as auth_router
 from app.database import Base, engine
+from app.router.doctors import router as doctor_router
+from app.router.patients import router as patient_router
+from fastapi import FastAPI
+from fastapi import FastAPI
 
-
-from app.routes import (
-    auth,
-    doctors,
-    patients,
-    appointments
-)
-
-
-Base.metadata.create_all(bind=engine)
+from app.router.doctors import router as doctor_router
 
 
 app = FastAPI(
-    title="Doctor Patient Management API",
-    description="""
-    Production-style Doctor and Patient Management API.
-
-    Includes:
-    - JWT Authentication
-    - Role-based authorization
-    - Doctor management
-    - Patient management
-    - Doctor-patient assignment
-    - Appointment management
-    - Validation
-    - Pagination
-    - Filtering
-    """,
-    version="2.0.0"
+    title="Doctor Patient Management API"
 )
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request,
-    exc: RequestValidationError
-):
-    return JSONResponse(
-        status_code=422,
-        content={
-            "success": False,
-            "message": "Validation error",
-            "details": exc.errors()
-        }
-    )
-
-
-@app.exception_handler(IntegrityError)
-async def integrity_exception_handler(
-    request: Request,
-    exc: IntegrityError
-):
-    return JSONResponse(
-        status_code=400,
-        content={
-            "success": False,
-            "message": "Database constraint violation",
-            "details": "The requested operation violates a database constraint."
-        }
-    )
+app.include_router(doctor_router)
 
 
 @app.get("/")
 def root():
     return {
-        "message": "Doctor Patient API is running",
-        "version": "2.0.0"
+        "message": "Doctor Patient API is running"
     }
-
-
-app.include_router(auth.router)
-app.include_router(doctors.router)
-app.include_router(patients.router)
-app.include_router(appointments.router)
-
-from fastapi import FastAPI
-
-from app .database import Base, engine
-from . import models
-
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title="Doctor Patient Management API",
-    description="Production-style FastAPI Doctor and Patient Management System",
+    description="FastAPI backend for managing doctors and patients",
     version="1.0.0"
 )
 
 
 @app.get("/")
 def root():
+    return {
+        "message": "Doctor Patient Management API is running"
+    }
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy"
+    }
+Base.metadata.create_all(bind=engine)
+app.include_router(auth_router)
+app.include_router(doctor_router)
+
+
+app = FastAPI(
+    title="Doctor Patient Management API",
+    description="FastAPI backend for managing doctors and patients",
+    version="1.0.0"
+)
+
+
+app.include_router(auth_router)
+app.include_router(doctor_router)
+app.include_router(patient_router)
+
+
+@app.get("/")
+def root():
+
     return {
         "message": "Doctor Patient API is running"
     }
